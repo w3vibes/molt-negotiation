@@ -1,0 +1,13 @@
+{
+  "name": "@molt-negotiation/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "forge build",
+    "test": "FOUNDRY_OFFLINE=true forge test -vv",
+    "deploy:sepolia": "forge script script/DeployMoltNegotiationEscrow.s.sol:DeployMoltNegotiationEscrow --rpc-url $SEPOLIA_RPC_URL --broadcast --private-key $PRIVATE_KEY"
+  },
+  "devDependencies": {
+    "forge-std": "https://github.com/foundry-rs/forge-std.git#v1.2.0"
+  }
+}
