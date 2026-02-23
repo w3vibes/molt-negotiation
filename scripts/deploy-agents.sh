@@ -24,11 +24,11 @@ INSTANCE_TYPE="${ECLOUD_INSTANCE_TYPE:-g1-standard-4t}"
 LOG_VISIBILITY="${ECLOUD_LOG_VISIBILITY:-private}"
 RESOURCE_MON="${ECLOUD_RESOURCE_USAGE_MONITORING:-enable}"
 
-AGENT_A_APP_NAME="${ECLOUD_AGENT_NAME_A:-moltcombat-agent-a}"
-AGENT_B_APP_NAME="${ECLOUD_AGENT_NAME_B:-moltcombat-agent-b}"
+AGENT_A_APP_NAME="${ECLOUD_AGENT_NAME_A:-moltnegotiation-agent-a}"
+AGENT_B_APP_NAME="${ECLOUD_AGENT_NAME_B:-moltnegotiation-agent-b}"
 
-AGENT_A_IMAGE_REF="${ECLOUD_IMAGE_REF_AGENT_A:-username/moltcombat-agent-a:latest}"
-AGENT_B_IMAGE_REF="${ECLOUD_IMAGE_REF_AGENT_B:-username/moltcombat-agent-b:latest}"
+AGENT_A_IMAGE_REF="${ECLOUD_IMAGE_REF_AGENT_A:-username/moltnegotiation-agent-a:latest}"
+AGENT_B_IMAGE_REF="${ECLOUD_IMAGE_REF_AGENT_B:-username/moltnegotiation-agent-b:latest}"
 
 AGENT_A_APP_ID="${ECLOUD_APP_ID_AGENT_A:-}"
 AGENT_B_APP_ID="${ECLOUD_APP_ID_AGENT_B:-}"
@@ -232,4 +232,4 @@ echo "  appId:        ${AGENT_B_APP_ID}"
 echo "  endpoint:     ${AGENT_B_ENDPOINT:-NOT_FOUND}"
 echo "  imageDigest:  ${AGENT_B_IMAGE_DIGEST:-NOT_FOUND}"
 
-echo "\nNext: register agents on MoltCombat API using endpoint + sandbox + eigencompute metadata."
+echo "\nNext: register agents on moltnegotiation API using endpoint + sandbox + eigencompute metadata."
