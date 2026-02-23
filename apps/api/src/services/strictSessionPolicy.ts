@@ -197,13 +197,15 @@ export function evaluateStrictSessionPolicy(input: {
           reasons.push(`${participant.label}:invalid_endpoint_protocol`);
         }
 
-        if (requireEndpointNegotiation) {
-          const host = parsed.hostname.toLowerCase();
-          const loopback = host === 'localhost' || host === '127.0.0.1' || host === '::1';
-          if (!loopback && parsed.protocol !== 'https:') {
-            reasons.push(`${participant.label}:endpoint_tls_required_for_negotiation`);
-          }
-        }
+        // TLS is not enforced — EigenCompute agents serve HTTP.
+        // Protocol validity (http/https) is checked above.
+        // if (requireEndpointNegotiation) {
+        //   const host = parsed.hostname.toLowerCase();
+        //   const loopback = host === 'localhost' || host === '127.0.0.1' || host === '::1';
+        //   if (!loopback && parsed.protocol !== 'https:') {
+        //     reasons.push(`${participant.label}:endpoint_tls_required_for_negotiation`);
+        //   }
+        // }
       } catch {
         reasons.push(`${participant.label}:invalid_endpoint_url`);
       }

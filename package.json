@@ -17,7 +17,11 @@
     "web:env:sync": "bash scripts/sync-web-env.sh",
     "deploy:first": "bash scripts/prod-first-deploy.sh",
     "release:prod": "bash scripts/prod-release.sh",
-    "e2e:strict:private": "node scripts/e2e-strict-private.mjs"
+    "e2e:strict:private": "node scripts/e2e-strict-private.mjs",
+    "e2e:strict": "bash scripts/strict-e2e.sh",
+    "escrow:prepare": "node scripts/prepareEscrow.mjs",
+    "escrow:player:deposit": "node scripts/depositEscrow.mjs",
+    "deploy:agents": "bash scripts/deploy-agents.sh"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
