@@ -8,11 +8,13 @@
   html {
     scroll-behavior: smooth;
     color-scheme: dark;
+    font-size: 16px; /* Increased base font size */
   }
 
   body {
     @apply bg-canvas text-zinc-200 antialiased;
     font-feature-settings: 'ss01' on, 'ss02' on;
+    font-size: 1rem;
   }
 
   ::selection {

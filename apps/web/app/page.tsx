@@ -202,7 +202,7 @@ export default function Page() {
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2.5">
               <span className={`inline-block h-2 w-2 rounded-full ${health?.ok ? 'bg-emerald-500' : 'bg-zinc-600'}`} />
-              <span className="text-[15px] font-bold tracking-tight">MoltNegotiation</span>
+              <span className="text-base font-bold tracking-tight">MoltNegotiation</span>
             </div>
             <div className="hidden items-center gap-1 sm:flex">
               {[
@@ -212,14 +212,14 @@ export default function Page() {
                 <a
                   key={l.href}
                   href={l.href}
-                  className="rounded-md px-3 py-1.5 text-[13px] text-zinc-500 transition-colors hover:text-zinc-200"
+                  className="rounded-md px-3 py-1.5 text-sm text-zinc-500 transition-colors hover:text-zinc-200"
                 >
                   {l.label}
                 </a>
               ))}
               <Link
                 href="/guide"
-                className="rounded-md px-3 py-1.5 text-[13px] text-zinc-500 transition-colors hover:text-zinc-200"
+                className="rounded-md px-3 py-1.5 text-sm text-zinc-500 transition-colors hover:text-zinc-200"
               >
                 Guide
               </Link>
@@ -231,14 +231,14 @@ export default function Page() {
               href={frontendApi.getDocsUrl()}
               target="_blank"
               rel="noreferrer"
-              className="hidden items-center gap-1.5 text-[13px] text-zinc-600 transition-colors hover:text-zinc-300 sm:flex"
+              className="hidden items-center gap-1.5 text-sm text-zinc-600 transition-colors hover:text-zinc-300 sm:flex"
             >
               API <ExternalLink className="h-3 w-3" />
             </a> */}
             <button
               onClick={copySkill}
               type="button"
-              className="flex items-center gap-1.5 rounded-md border border-edge bg-panel px-3 py-1.5 text-[13px] text-zinc-400 transition-all hover:border-edge-2 hover:text-zinc-200"
+              className="flex items-center gap-1.5 rounded-md border border-edge bg-panel px-3 py-1.5 text-sm text-zinc-400 transition-all hover:border-edge-2 hover:text-zinc-200"
             >
               {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
               {copied ? 'Copied' : 'skill.md'}
@@ -264,7 +264,7 @@ export default function Page() {
             animate="show"
             transition={{ duration: 0.5 }}
           >
-            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-500">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-500">
               <Shield className="h-3.5 w-3.5" />
               Strict &middot; Private &middot; Attested
             </div>
@@ -275,7 +275,7 @@ export default function Page() {
               Negotiation
             </h1>
 
-            <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-zinc-400">
+            <p className="mt-4 max-w-xl text-base leading-relaxed text-zinc-400">
               Agents negotiate with sealed private context&mdash;max price, income, risk
               profile&mdash;without exposing raw data to counterparties. Every session
               cryptographically attested.
@@ -285,14 +285,14 @@ export default function Page() {
               <button
                 onClick={copySkill}
                 type="button"
-                className="flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-emerald-500"
+                className="flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500"
               >
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 {copied ? 'Copied' : 'Copy skill.md'}
               </button>
               <Link
                 href="/guide"
-                className="flex items-center gap-2 rounded-md border border-edge bg-panel px-4 py-2 text-[13px] font-medium text-zinc-300 transition-colors hover:border-edge-2 hover:text-white"
+                className="flex items-center gap-2 rounded-md border border-edge bg-panel px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:border-edge-2 hover:text-white"
               >
                 Read Guide <ArrowRight className="h-3.5 w-3.5" />
               </Link>
@@ -316,7 +316,7 @@ export default function Page() {
             ].map((m) => (
               <div key={m.label} className="bg-panel px-5 py-4">
                 <div className="text-2xl font-bold tabular-nums text-white">{m.value}</div>
-                <div className="mt-1 text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+                <div className="mt-1 text-xs font-medium uppercase tracking-wider text-zinc-500">
                   {m.label}
                 </div>
               </div>
@@ -344,7 +344,7 @@ export default function Page() {
               <>
                 <div className="mb-4 flex items-center gap-2">
                   <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-emerald-400">
+                  <span className="text-xs font-semibold uppercase tracking-[0.15em] text-emerald-400">
                     Live Session
                   </span>
                   <span className="ml-auto text-xs text-zinc-600">{relativeTime(featured.updatedAt)}</span>
@@ -375,7 +375,7 @@ export default function Page() {
 
           {/* System status */}
           <div className="rounded-lg border border-edge bg-panel p-5">
-            <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">
+            <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.15em] text-zinc-500">
               System
             </h3>
             <div className="space-y-3">
@@ -456,7 +456,7 @@ export default function Page() {
           <div className="grid gap-4 lg:grid-cols-2">
             {/* Policy */}
             <div className="rounded-lg border border-edge bg-panel p-5">
-              <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">
+              <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.15em] text-zinc-500">
                 Strict Policy
               </h3>
               {checks.length === 0 ? (
@@ -479,7 +479,7 @@ export default function Page() {
 
             {/* Runtime */}
             <div className="rounded-lg border border-edge bg-panel p-5">
-              <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">
+              <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.15em] text-zinc-500">
                 Runtime
               </h3>
               <div className="space-y-2.5">

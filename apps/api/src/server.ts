@@ -83,7 +83,7 @@ export function buildServer(options: ServerOptions = {}): FastifyInstance {
 
   // Register routes
   registerSystemRoutes(app, store);
-  registerInstallRoutes(app);
+  registerInstallRoutes(app, store);
   registerAgentRoutes(app, store);
   registerSessionRoutes(app, store);
   registerEscrowRoutes(app, store);

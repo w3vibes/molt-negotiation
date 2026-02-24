@@ -85,7 +85,7 @@ function CodeBlock({
   return (
     <div className="mt-3 overflow-hidden rounded-lg border border-edge">
       <div className="flex items-center justify-between border-b border-edge bg-panel px-4 py-2.5">
-        <span className="text-[13px] font-semibold text-zinc-300">{title}</span>
+        <span className="text-sm font-semibold text-zinc-300">{title}</span>
         <button
           type="button"
           onClick={() => onCopy(id, code)}
@@ -99,7 +99,7 @@ function CodeBlock({
           {state === 'copied' ? 'Copied' : 'Copy'}
         </button>
       </div>
-      <pre className="overflow-x-auto bg-canvas px-4 py-3 font-mono text-[13px] leading-relaxed text-zinc-400">
+      <pre className="overflow-x-auto bg-canvas px-4 py-3 font-mono text-sm leading-relaxed text-zinc-400">
         {code}
       </pre>
     </div>
@@ -112,7 +112,7 @@ function CodeBlock({
 
 function Note({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mt-3 rounded-md border border-edge bg-canvas px-4 py-3 text-[13px] leading-relaxed text-zinc-400">
+    <div className="mt-3 rounded-md border border-edge bg-canvas px-4 py-3 text-sm leading-relaxed text-zinc-400">
       {children}
     </div>
   );
@@ -124,7 +124,7 @@ function Note({ children }: { children: React.ReactNode }) {
 
 function C({ children }: { children: React.ReactNode }) {
   return (
-    <code className="rounded bg-panel-2 px-1.5 py-0.5 font-mono text-[12px] text-zinc-300">
+    <code className="rounded bg-panel-2 px-1.5 py-0.5 font-mono text-xs text-zinc-300">
       {children}
     </code>
   );
@@ -313,7 +313,7 @@ LAUNCH_REQUIRE_RUNTIME_EVIDENCE=true npm run verify:launch`;
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5">
           <Link
             href="/"
-            className="flex items-center gap-2 text-[13px] text-zinc-500 transition-colors hover:text-zinc-200"
+            className="flex items-center gap-2 text-sm text-zinc-500 transition-colors hover:text-zinc-200"
           >
             <ArrowLeft className="h-4 w-4" />
             Dashboard
@@ -338,14 +338,14 @@ LAUNCH_REQUIRE_RUNTIME_EVIDENCE=true npm run verify:launch`;
           {/* TOC */}
           <aside className="hidden lg:block">
             <nav className="sticky top-20 space-y-0.5">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-600">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.15em] text-zinc-600">
                 Contents
               </p>
               {SECTIONS.map((s) => (
                 <a
                   key={s.id}
                   href={`#${s.id}`}
-                  className="block rounded-md px-3 py-1.5 text-[13px] text-zinc-500 transition-colors hover:bg-panel hover:text-zinc-200"
+                  className="block rounded-md px-3 py-1.5 text-sm text-zinc-500 transition-colors hover:bg-panel hover:text-zinc-200"
                 >
                   {s.title}
                 </a>
@@ -393,7 +393,7 @@ LAUNCH_REQUIRE_RUNTIME_EVIDENCE=true npm run verify:launch`;
               <h2 className="text-base font-bold text-white">Trust model & boundaries</h2>
               <div className="mt-3 grid gap-5 sm:grid-cols-2">
                 <div>
-                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">
+                  <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-zinc-500">
                     Strong guarantees
                   </h3>
                   <ul className="mt-2 space-y-1.5 text-sm text-zinc-400">
@@ -405,7 +405,7 @@ LAUNCH_REQUIRE_RUNTIME_EVIDENCE=true npm run verify:launch`;
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">
+                  <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-zinc-500">
                     Boundaries
                   </h3>
                   <ul className="mt-2 space-y-1.5 text-sm text-zinc-400">
@@ -481,7 +481,7 @@ LAUNCH_REQUIRE_RUNTIME_EVIDENCE=true npm run verify:launch`;
                   '/sessions/:id/escrow/status',
                   '/sessions/:id/escrow/settle',
                 ].map((ep) => (
-                  <div key={ep} className="rounded-md border border-edge bg-canvas px-3 py-2 font-mono text-[13px] text-zinc-400">
+                  <div key={ep} className="rounded-md border border-edge bg-canvas px-3 py-2 font-mono text-sm text-zinc-400">
                     {ep}
                   </div>
                 ))}
@@ -517,7 +517,7 @@ LAUNCH_REQUIRE_RUNTIME_EVIDENCE=true npm run verify:launch`;
               <div className="mt-4 space-y-4">
                 {groupedCatalog.map(([group, routes]) => (
                   <div key={group}>
-                    <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">
+                    <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.15em] text-zinc-500">
                       {group}
                     </h3>
                     <div className="overflow-hidden rounded-lg border border-edge">
@@ -530,7 +530,7 @@ LAUNCH_REQUIRE_RUNTIME_EVIDENCE=true npm run verify:launch`;
                             <span className={`w-12 shrink-0 font-mono text-xs font-semibold ${methodColor(route.method)}`}>
                               {route.method}
                             </span>
-                            <code className="min-w-0 flex-1 truncate font-mono text-[13px] text-zinc-300">
+                            <code className="min-w-0 flex-1 truncate font-mono text-sm text-zinc-300">
                               {route.frontendPath}
                             </code>
                             <span className="hidden shrink-0 text-xs text-zinc-600 sm:block">
@@ -557,8 +557,8 @@ LAUNCH_REQUIRE_RUNTIME_EVIDENCE=true npm run verify:launch`;
                   { err: 'funding_pending', fix: 'Escrow deposits incomplete before start/settlement paths.' },
                 ].map((item) => (
                   <div key={item.err} className="rounded-md border border-edge bg-canvas px-4 py-3">
-                    <div className="font-mono text-[13px] font-semibold text-zinc-300">{item.err}</div>
-                    <div className="mt-1 text-[13px] text-zinc-500">{item.fix}</div>
+                    <div className="font-mono text-sm font-semibold text-zinc-300">{item.err}</div>
+                    <div className="mt-1 text-sm text-zinc-500">{item.fix}</div>
                   </div>
                 ))}
               </div>
