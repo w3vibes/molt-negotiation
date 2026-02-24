@@ -93,7 +93,6 @@ function policyItems(strict: StrictModeSnapshot | null): PolicyItem[] {
     { label: 'Endpoint mode', pass: strict.requireEndpointMode },
     { label: 'Endpoint negotiation', pass: strict.requireEndpointNegotiation },
     { label: 'Turn proof', pass: strict.requireTurnProof },
-    { label: 'Runtime attestation', pass: strict.requireRuntimeAttestation },
     { label: 'Remote verify', pass: strict.runtimeAttestationRemoteVerify },
     { label: 'Engine fallback disabled', pass: !strict.allowEngineFallback },
     { label: 'EigenCompute required', pass: strict.requireEigenCompute },
