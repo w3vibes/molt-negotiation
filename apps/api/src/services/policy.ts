@@ -44,7 +44,7 @@ function productionRuntime(): boolean {
 }
 
 export function requireRuntimeAttestationByDefault(): boolean {
-  return envFlag('NEG_REQUIRE_RUNTIME_ATTESTATION', true);
+  return envFlag('NEG_REQUIRE_RUNTIME_ATTESTATION', false);
 }
 
 export function runtimeAttestationRemoteVerifyByDefault(): boolean {

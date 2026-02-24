@@ -30,18 +30,28 @@ if (ECLOUD_PRIVATE_KEY) {
 }
 
 // ============ CRYPTO HELPERS ============
-function sha256Hex(data) {
-  return createHash('sha256').update(data).digest('hex');
+function canonicalize(value) {
+  if (value === null || value === undefined) return value;
+  if (Array.isArray(value)) {
+    return value.map(canonicalize);
+  }
+  if (typeof value === 'object') {
+    const keys = Object.keys(value).sort();
+    const result = {};
+    for (const key of keys) {
+      result[key] = canonicalize(value[key]);
+    }
+    return result;
+  }
+  return value;
 }
 
-function canonicalStringify(obj) {
-  if (obj === null || obj === undefined) return '';
-  if (typeof obj !== 'object') return String(obj);
-  if (Array.isArray(obj)) {
-    return '[' + obj.map(canonicalStringify).join(',') + ']';
-  }
-  const keys = Object.keys(obj).sort();
-  return '{' + keys.map(k => `"${k}":${canonicalStringify(obj[k])}`).join(',') + '}';
+function canonicalStringify(value) {
+  return JSON.stringify(canonicalize(value));
+}
+
+function sha256Hex(data) {
+  return createHash('sha256').update(data).digest('hex');
 }
 
 function computeDecisionHash(input) {
@@ -53,10 +63,10 @@ function computeDecisionHash(input) {
     agentId: input.agentId,
     role: input.role,
     offer: Number(input.offer.toFixed(4)),
-    challenge: input.challenge.toLowerCase(),
-    appId: input.appId,
-    environment: input.environment,
-    imageDigest: input.imageDigest,
+    challenge: normalizeLower(input.challenge),
+    appId: normalizeLower(input.appId),
+    ...(input.environment ? { environment: normalizeLower(input.environment) } : {}),
+    ...(input.imageDigest ? { imageDigest: normalizeLower(input.imageDigest) } : {}),
     timestamp: input.timestamp
   };
   return '0x' + sha256Hex(canonicalStringify(payload));
@@ -71,16 +81,26 @@ function buildProofMessage(input) {
     input.agentId,
     input.role,
     Number(input.offer.toFixed(4)).toString(),
-    input.challenge.toLowerCase(),
+    normalizeLower(input.challenge),
     input.decisionHash,
-    input.appId || '',
-    input.environment || '',
-    input.imageDigest || '',
+    normalizeLower(input.appId) || '',
+    normalizeLower(input.environment) || '',
+    normalizeLower(input.imageDigest) || '',
     input.timestamp
   ].join('|');
 }
 
 // ============ UTILITY FUNCTIONS ============
+function normalizeText(value) {
+  if (typeof value !== 'string') return undefined;
+  const normalized = value.trim();
+  return normalized || undefined;
+}
+
+function normalizeLower(value) {
+  return normalizeText(value)?.toLowerCase();
+}
+
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
 }
@@ -172,6 +192,54 @@ function calculateOffer(params) {
 }
 
 // ============ DECISION WITH PROOF ============
+// ============ RUNTIME ATTESTATION ============
+// In EigenCompute, the TEE provides attestation evidence through environment or endpoint
+async function fetchRuntimeAttestation() {
+  // Try to get from environment (EigenCompute may set this)
+  const attestationEnv = process.env.ECLOUD_ATTESTATION;
+  if (attestationEnv) {
+    try {
+      return JSON.parse(attestationEnv);
+    } catch (e) {
+      // Invalid JSON, continue
+    }
+  }
+  
+  // Try standard EigenCompute attestation endpoint
+  try {
+    const endpoints = [
+      'http://attestation-service/attest',
+      'http://169.254.169.254/attest/v1/runtime',
+      'http://metadata.google.internal/computeMetadata/v1/instance/attestation'
+    ];
+    
+    for (const endpoint of endpoints) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 2000);
+        
+        const response = await fetch(endpoint, {
+          method: 'GET',
+          headers: { 'Metadata-Flavor': 'Google' },
+          signal: controller.signal
+        });
+        clearTimeout(timeout);
+        
+        if (response.ok) {
+          const data = await response.json();
+          return data;
+        }
+      } catch (e) {
+        // Try next endpoint
+      }
+    }
+  } catch (e) {
+    // Attestation fetch failed, continue without
+  }
+  
+  return null;
+}
+
 async function makeDecision(payload) {
   const { sessionId, turn, maxTurns, role, agentId, challenge, privateContext, publicState } = payload;
   
@@ -220,6 +288,9 @@ async function makeDecision(payload) {
     
     const signature = await wallet.signMessage(message);
     
+    // Fetch runtime attestation from TEE environment
+    const runtimeEvidence = await fetchRuntimeAttestation();
+    
     return {
       offer,
       proof: {
@@ -230,11 +301,12 @@ async function makeDecision(payload) {
         challenge,
         decisionHash,
         appId: binding.appId || '',
-        environment: binding.environment || '',
-        imageDigest: binding.imageDigest || '',
+        ...(binding.environment ? { environment: binding.environment } : {}),
+        ...(binding.imageDigest ? { imageDigest: binding.imageDigest } : {}),
         signer: AGENT_SIGNER_ADDRESS,
         signature,
-        timestamp
+        timestamp,
+        ...(runtimeEvidence ? { runtimeEvidence } : {})
       }
     };
   }

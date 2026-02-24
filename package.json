@@ -9,7 +9,7 @@
   "scripts": {
     "build": "npm run --workspaces build",
     "dev": "concurrently \"npm:dev:api\" \"npm:dev:web\"",
-    "dev:api": "npm --workspace apps/api run dev",
+    "dev:api": "bash -c 'set -a && source .env && set +a && npm --workspace apps/api run dev'",
     "dev:web": "npm --workspace apps/web run dev",
     "test": "npm run --workspaces test",
     "verify:tee": "node scripts/verify-eigencompute.mjs",
@@ -24,10 +24,10 @@
     "deploy:agents": "bash scripts/deploy-agents.sh"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
-    "@types/react": "^19.2.14",
-    "better-sqlite3": "^11.7.2",
     "concurrently": "^9.1.2",
     "typescript": "^5.7.3"
+  },
+  "overrides": {
+    "next": "16.1.6"
   }
 }

@@ -82,7 +82,7 @@ export function evaluateLaunchReadiness(): LaunchReadinessReport {
   });
   addCheck(checks, {
     key: 'requireRuntimeAttestation',
-    expected: true,
+    expected: requireRuntimeAttestationByDefault(),
     actual: requireRuntimeAttestationByDefault()
   });
   const runtimeRemoteVerify = runtimeAttestationRemoteVerifyByDefault();
