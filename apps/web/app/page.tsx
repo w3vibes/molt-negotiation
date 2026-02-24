@@ -394,15 +394,6 @@ export default function Page() {
                   label: 'Environment',
                   value: verification?.environment || '\u2014',
                 },
-                {
-                  label: 'Launch',
-                  value: health?.launchReady ? 'Ready' : 'Not Ready',
-                  dot: health?.launchReady ? 'bg-emerald-500' : 'bg-amber-500',
-                },
-                {
-                  label: 'Uptime',
-                  value: formatUptime(health?.uptimeSec),
-                },
               ].map((row) => (
                 <div key={row.label} className="flex items-center justify-between">
                   <span className="text-sm text-zinc-500">{row.label}</span>
