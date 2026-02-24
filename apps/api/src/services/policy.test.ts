@@ -74,7 +74,7 @@ describe('policy defaults', () => {
     expect(endpointNegotiationRequiredByDefault()).toBe(true);
     expect(turnProofRequiredByDefault()).toBe(true);
     expect(turnProofMaxSkewMsByDefault()).toBe(5 * 60 * 1000);
-    expect(requireRuntimeAttestationByDefault()).toBe(true);
+    expect(requireRuntimeAttestationByDefault()).toBe(false);
     expect(runtimeAttestationRemoteVerifyByDefault()).toBe(false);
     expect(runtimeAttestationMaxAgeMsByDefault()).toBe(10 * 60 * 1000);
     expect(runtimeAttestationVerifierUrlByDefault()).toBeUndefined();
@@ -200,6 +200,7 @@ describe('policy defaults', () => {
     process.env.NEG_REQUIRE_ATTESTATION_SIGNER_KEY = 'false';
     process.env.NEG_ALLOW_ENGINE_FALLBACK = 'true';
     process.env.NEG_TURN_PROOF_MAX_SKEW_MS = '7000';
+    process.env.NEG_REQUIRE_RUNTIME_ATTESTATION = 'true';
     const snapshot = strictPolicySnapshot();
 
     expect(snapshot).toEqual({

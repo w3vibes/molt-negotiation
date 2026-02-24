@@ -1,19 +1,19 @@
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
-  darkMode: ['class'],
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
   theme: {
     extend: {
-      colors: {
-        background: '#05070d',
-        foreground: '#f4f7ff',
-        card: '#0e1429',
-        border: '#233056',
-        primary: '#5b7cfa',
+      fontFamily: {
+        sans: ['var(--font-sans)'],
+        mono: ['var(--font-mono)'],
       },
-      borderRadius: {
-        xl: '1rem',
+      colors: {
+        canvas: '#060608',
+        panel: '#0e0f12',
+        'panel-2': '#141519',
+        edge: '#1c1e24',
+        'edge-2': '#262830',
       },
     },
   },

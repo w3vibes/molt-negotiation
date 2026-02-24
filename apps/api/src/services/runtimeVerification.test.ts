@@ -16,6 +16,7 @@ afterEach(() => {
 
 describe('runtime attestation verification', () => {
   it('accepts valid self-verified runtime claims when remote verify is disabled', async () => {
+    process.env.NEG_REQUIRE_RUNTIME_ATTESTATION = 'true';
     process.env.NEG_RUNTIME_ATTESTATION_REMOTE_VERIFY = 'false';
     process.env.NEG_RUNTIME_ATTESTATION_MAX_AGE_MS = String(5 * 60 * 1000);
 
@@ -49,6 +50,7 @@ describe('runtime attestation verification', () => {
   });
 
   it('rejects when required runtime attestation evidence is missing', async () => {
+    process.env.NEG_REQUIRE_RUNTIME_ATTESTATION = 'true';
     process.env.NEG_RUNTIME_ATTESTATION_REMOTE_VERIFY = 'false';
 
     const verification = await verifyRuntimeAttestation({

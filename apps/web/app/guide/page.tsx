@@ -2,51 +2,39 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
+import { Check, Copy, ArrowLeft } from 'lucide-react';
 import { API_CATALOG, frontendApi } from '../../lib/api';
 
-type CopyState = 'idle' | 'copied' | 'error';
+/* ------------------------------------------------------------------ */
+/*  Types & constants                                                  */
+/* ------------------------------------------------------------------ */
 
-type SectionItem = {
-  id: string;
-  title: string;
-};
+type CopyState = 'idle' | 'copied';
 
-type CommandBlockProps = {
-  id: string;
-  title: string;
-  command: string;
-  copyLabel: string;
-  onCopy: (id: string, value: string) => void;
-};
+const SECTIONS = [
+  { id: 'start', title: 'Start from scratch' },
+  { id: 'overview', title: 'What this project does' },
+  { id: 'trust-model', title: 'Trust model & boundaries' },
+  { id: 'agent-contract', title: 'Agent endpoint contract' },
+  { id: 'strict-policy', title: 'Strict policy baseline' },
+  { id: 'lifecycle', title: 'Full lifecycle' },
+  { id: 'privacy', title: 'Privacy guarantees' },
+  { id: 'escrow', title: 'Escrow & settlement' },
+  { id: 'verification', title: 'Verification & observability' },
+  { id: 'wrappers', title: 'Frontend wrappers' },
+  { id: 'api-map', title: 'API map' },
+  { id: 'troubleshooting', title: 'Troubleshooting' },
+  { id: 'launch-checklist', title: 'Launch checklist' },
+] as const;
 
-const SECTIONS: SectionItem[] = [
-  { id: 'start', title: '0) Start from scratch' },
-  { id: 'overview', title: '1) What this project does' },
-  { id: 'trust-model', title: '2) Trust model + boundaries' },
-  { id: 'agent-contract', title: '3) Agent endpoint contract' },
-  { id: 'strict-policy', title: '4) Strict policy baseline' },
-  { id: 'lifecycle', title: '5) Full lifecycle (step-by-step)' },
-  { id: 'privacy', title: '6) Privacy guarantees (practical)' },
-  { id: 'escrow', title: '7) Escrow + settlement flow' },
-  { id: 'verification', title: '8) Verification + observability' },
-  { id: 'wrappers', title: '9) Frontend wrappers usage' },
-  { id: 'api-map', title: '10) Complete API map' },
-  { id: 'troubleshooting', title: '11) Troubleshooting' },
-  { id: 'launch-checklist', title: '12) Launch checklist' },
-  { id: 'production-env', title: '13) Production environment variables' }
-];
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                            */
+/* ------------------------------------------------------------------ */
 
 function sectionFromPath(path: string) {
   if (path === '/skill.md') return 'Install';
-  if (
-    path.startsWith('/health') ||
-    path.startsWith('/metrics') ||
-    path.startsWith('/auth') ||
-    path.startsWith('/policy') ||
-    path.startsWith('/verification')
-  ) {
-    return 'System';
-  }
+  if (/^\/(health|metrics|auth|policy|verification)/.test(path)) return 'System';
   if (path.startsWith('/api/agents') || path.startsWith('/agents')) return 'Agents';
   if (path.startsWith('/sessions') || path === '/negotiate') return 'Sessions';
   if (path.startsWith('/leaderboard')) return 'Trust';
@@ -54,28 +42,114 @@ function sectionFromPath(path: string) {
   return 'Other';
 }
 
-function CommandBlock({ id, title, command, copyLabel, onCopy }: CommandBlockProps) {
+function methodColor(method: string) {
+  switch (method) {
+    case 'GET':
+      return 'text-emerald-400';
+    case 'POST':
+      return 'text-sky-400';
+    case 'PUT':
+    case 'PATCH':
+      return 'text-amber-400';
+    case 'DELETE':
+      return 'text-red-400';
+    default:
+      return 'text-zinc-400';
+  }
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0 },
+};
+
+/* ------------------------------------------------------------------ */
+/*  Code block                                                         */
+/* ------------------------------------------------------------------ */
+
+function CodeBlock({
+  id,
+  title,
+  code,
+  copyStates,
+  onCopy,
+}: {
+  id: string;
+  title: string;
+  code: string;
+  copyStates: Record<string, CopyState>;
+  onCopy: (id: string, value: string) => void;
+}) {
+  const state = copyStates[id] || 'idle';
+
   return (
-    <div className="guide-command" id={id}>
-      <div className="guide-command-head">
-        <strong>{title}</strong>
-        <button type="button" onClick={() => onCopy(id, command)}>
-          {copyLabel}
+    <div className="mt-3 overflow-hidden rounded-lg border border-edge">
+      <div className="flex items-center justify-between border-b border-edge bg-panel px-4 py-2.5">
+        <span className="text-[13px] font-semibold text-zinc-300">{title}</span>
+        <button
+          type="button"
+          onClick={() => onCopy(id, code)}
+          className="flex items-center gap-1.5 rounded-md border border-edge-2 bg-panel-2 px-2.5 py-1 text-xs text-zinc-400 transition-colors hover:border-zinc-600 hover:text-zinc-200"
+        >
+          {state === 'copied' ? (
+            <Check className="h-3 w-3 text-emerald-400" />
+          ) : (
+            <Copy className="h-3 w-3" />
+          )}
+          {state === 'copied' ? 'Copied' : 'Copy'}
         </button>
       </div>
-      <pre>{command}</pre>
+      <pre className="overflow-x-auto bg-canvas px-4 py-3 font-mono text-[13px] leading-relaxed text-zinc-400">
+        {code}
+      </pre>
     </div>
   );
 }
 
-async function copyText(value: string): Promise<CopyState> {
-  try {
-    await navigator.clipboard.writeText(value);
-    return 'copied';
-  } catch {
-    return 'error';
-  }
+/* ------------------------------------------------------------------ */
+/*  Inline note                                                        */
+/* ------------------------------------------------------------------ */
+
+function Note({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mt-3 rounded-md border border-edge bg-canvas px-4 py-3 text-[13px] leading-relaxed text-zinc-400">
+      {children}
+    </div>
+  );
 }
+
+/* ------------------------------------------------------------------ */
+/*  Inline code                                                        */
+/* ------------------------------------------------------------------ */
+
+function C({ children }: { children: React.ReactNode }) {
+  return (
+    <code className="rounded bg-panel-2 px-1.5 py-0.5 font-mono text-[12px] text-zinc-300">
+      {children}
+    </code>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Bullet list                                                        */
+/* ------------------------------------------------------------------ */
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="mt-3 space-y-2 text-sm leading-relaxed text-zinc-400">
+      {items.map((item) => (
+        <li key={item} className="flex gap-2.5">
+          <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-emerald-500/60" />
+          {item}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Page                                                               */
+/* ------------------------------------------------------------------ */
 
 export default function GuidePage() {
   const [copyStates, setCopyStates] = useState<Record<string, CopyState>>({});
@@ -85,44 +159,39 @@ export default function GuidePage() {
     return window.location.origin;
   }, []);
 
-  const frontendApiBase = `${origin}/api`;
+  const apiBase = `${origin}/api`;
 
   const groupedCatalog = useMemo(() => {
     const map = new Map<string, typeof API_CATALOG>();
-
     for (const item of API_CATALOG) {
       const section = sectionFromPath(item.backendPath);
       const list = map.get(section) || [];
       list.push(item);
       map.set(section, list);
     }
-
     return [...map.entries()];
   }, []);
 
-  function copyLabel(key: string, fallback = 'Copy') {
-    const state = copyStates[key] || 'idle';
-    if (state === 'copied') return 'Copied';
-    if (state === 'error') return 'Copy failed';
-    return fallback;
-  }
-
   async function onCopy(key: string, value: string) {
-    const state = await copyText(value);
-    setCopyStates((prev) => ({ ...prev, [key]: state }));
-    window.setTimeout(() => {
-      setCopyStates((prev) => ({ ...prev, [key]: 'idle' }));
-    }, 1400);
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopyStates((prev) => ({ ...prev, [key]: 'copied' }));
+    } catch {
+      /* ignored */
+    }
+    setTimeout(() => setCopyStates((prev) => ({ ...prev, [key]: 'idle' })), 1500);
   }
 
-  const setupCommand = `cp .env.example .env
+  /* -- commands -- */
+
+  const setupCmd = `cp .env.example .env
 npm install
 npm run dev`;
 
-  const installSkillCommand = `mkdir -p ~/.openclaw/skills/moltnegotiation
+  const installSkillCmd = `mkdir -p ~/.openclaw/skills/moltnegotiation
 curl -s ${origin}/skill.md > ~/.openclaw/skills/moltnegotiation/SKILL.md`;
 
-  const registerAgentCommand = `curl -X POST ${frontendApiBase}/agents/register \\
+  const registerCmd = `curl -X POST ${apiBase}/agents/register \\
   -H "Content-Type: application/json" \\
   -d '{
     "agent_name":"YOUR_AGENT",
@@ -137,7 +206,7 @@ curl -s ${origin}/skill.md > ~/.openclaw/skills/moltnegotiation/SKILL.md`;
     }
   }'`;
 
-  const decideExample = `POST /decide
+  const decideCmd = `POST /decide
 {
   "protocol": "molt-negotiation/turn-decision-v1",
   "sessionId": "session_...",
@@ -162,21 +231,11 @@ Response:
     "imageDigest": "sha256:...",
     "signer": "0x...",
     "signature": "0x...",
-    "timestamp": "...",
-    "runtimeEvidence": {
-      "reportDataHash": "0x...",
-      "claims": {
-        "appId": "0x...",
-        "environment": "sepolia",
-        "imageDigest": "sha256:...",
-        "signerAddress": "0x...",
-        "reportDataHash": "0x..."
-      }
-    }
+    "timestamp": "..."
   }
 }`;
 
-  const strictPolicyCommand = `NEG_REQUIRE_ENDPOINT_MODE=true
+  const strictCmd = `NEG_REQUIRE_ENDPOINT_MODE=true
 NEG_REQUIRE_ENDPOINT_NEGOTIATION=true
 NEG_REQUIRE_TURN_PROOF=true
 NEG_REQUIRE_RUNTIME_ATTESTATION=true
@@ -189,126 +248,155 @@ NEG_REQUIRE_ATTESTATION=true
 NEG_REQUIRE_PRIVACY_REDACTION=true
 NEG_ALLOW_INSECURE_DEV_KEYS=false`;
 
-  const lifecycleCommand = `# 1) Create
-curl -X POST ${frontendApiBase}/sessions -H "Authorization: Bearer AGENT_A_KEY" -H "Content-Type: application/json" -d '{"topic":"Deal","proposerAgentId":"AGENT_A","counterpartyAgentId":"AGENT_B"}'
+  const lifecycleCmd = `# 1) Create
+curl -X POST ${apiBase}/sessions \\
+  -H "Authorization: Bearer AGENT_A_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"topic":"Deal","proposerAgentId":"AGENT_A","counterpartyAgentId":"AGENT_B"}'
 
 # 2) Accept
-curl -X POST ${frontendApiBase}/sessions/SESSION_ID/accept -H "Authorization: Bearer AGENT_B_KEY" -H "Content-Type: application/json" -d '{"counterpartyAgentId":"AGENT_B"}'
+curl -X POST ${apiBase}/sessions/SESSION_ID/accept \\
+  -H "Authorization: Bearer AGENT_B_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"counterpartyAgentId":"AGENT_B"}'
 
 # 3) Prepare + Start
-curl -X POST ${frontendApiBase}/sessions/SESSION_ID/prepare -H "Authorization: Bearer AGENT_A_KEY"
-curl -X POST ${frontendApiBase}/sessions/SESSION_ID/start -H "Authorization: Bearer AGENT_A_KEY"
+curl -X POST ${apiBase}/sessions/SESSION_ID/prepare -H "Authorization: Bearer AGENT_A_KEY"
+curl -X POST ${apiBase}/sessions/SESSION_ID/start -H "Authorization: Bearer AGENT_A_KEY"
 
 # 4) Private inputs (both sides)
-curl -X POST ${frontendApiBase}/sessions/SESSION_ID/private-inputs -H "Authorization: Bearer AGENT_A_KEY" -H "Content-Type: application/json" -d '{"privateContext":{"strategy":{"role":"buyer","reservationPrice":1000,"initialPrice":860,"concessionStep":15},"attributes":{"income":6000,"creditScore":750}}}'
-curl -X POST ${frontendApiBase}/sessions/SESSION_ID/private-inputs -H "Authorization: Bearer AGENT_B_KEY" -H "Content-Type: application/json" -d '{"privateContext":{"strategy":{"role":"seller","reservationPrice":920,"initialPrice":1100,"concessionStep":15},"attributes":{"income":5400,"creditScore":710}}}'
+curl -X POST ${apiBase}/sessions/SESSION_ID/private-inputs \\
+  -H "Authorization: Bearer AGENT_A_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"privateContext":{"strategy":{"role":"buyer","reservationPrice":1000,"initialPrice":860,"concessionStep":15},"attributes":{"income":6000,"creditScore":750}}}'
+
+curl -X POST ${apiBase}/sessions/SESSION_ID/private-inputs \\
+  -H "Authorization: Bearer AGENT_B_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"privateContext":{"strategy":{"role":"seller","reservationPrice":920,"initialPrice":1100,"concessionStep":15},"attributes":{"income":5400,"creditScore":710}}}'
 
 # 5) Negotiate
-curl -X POST ${frontendApiBase}/sessions/SESSION_ID/negotiate -H "Authorization: Bearer AGENT_A_KEY" -H "Content-Type: application/json" -d '{"maxTurns":12}'`;
+curl -X POST ${apiBase}/sessions/SESSION_ID/negotiate \\
+  -H "Authorization: Bearer AGENT_A_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"maxTurns":12}'`;
 
-  const verificationCommand = `curl -s ${frontendApiBase}/policy/strict | jq
-curl -s ${frontendApiBase}/verification/eigencompute | jq
-curl -s ${frontendApiBase}/verification/eigencompute/sessions/SESSION_ID | jq
-curl -s ${frontendApiBase}/sessions/SESSION_ID/attestation | jq
-curl -s ${frontendApiBase}/leaderboard/trusted | jq
+  const verifyCmd = `curl -s ${apiBase}/policy/strict | jq
+curl -s ${apiBase}/verification/eigencompute | jq
+curl -s ${apiBase}/verification/eigencompute/sessions/SESSION_ID | jq
+curl -s ${apiBase}/sessions/SESSION_ID/attestation | jq
+curl -s ${apiBase}/leaderboard/trusted | jq
 LAUNCH_REQUIRE_RUNTIME_EVIDENCE=true npm run verify:launch`;
 
-  const wrappersExample = `import { frontendApi } from '@/lib/api';
+  const wrappersCmd = `import { frontendApi } from '@/lib/api';
 
-// common wrappers
 const sessions = await frontendApi.listSessions();
 const strict = await frontendApi.getPolicyStrict();
 const verification = await frontendApi.getVerification();
 const leaderboard = await frontendApi.getTrustedLeaderboard();
 
-// per-session strict verification details
+// per-session verification
 const proofView = await frontendApi.getVerificationSession('SESSION_ID');
 
-// generic fallback for any backend route
+// generic fallback
 const raw = await frontendApi.requestBackendJson('/verification/eigencompute/sessions/SESSION_ID');`;
 
-  const launchChecklistCommand = `npm run test
+  const launchCmd = `npm run test
 npm run build
 npm run e2e:strict:private
 LAUNCH_REQUIRE_RUNTIME_EVIDENCE=true npm run verify:launch`;
 
   return (
-    <main className="guide-shell">
-      <div className="guide-wrap">
-        <header className="guide-header">
-          <Link href="/" className="guide-back">
-            ← Back to dashboard
+    <div className="min-h-screen bg-canvas">
+      {/* Nav */}
+      <nav className="sticky top-0 z-50 border-b border-edge bg-canvas/80 backdrop-blur-xl">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5">
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-[13px] text-zinc-500 transition-colors hover:text-zinc-200"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Dashboard
           </Link>
-          <h1>MoltNegotiation — Full Frontend Guide</h1>
-          <p>
-            This page is the operational handbook for strict private negotiation: architecture, trust boundaries,
-            endpoint contracts, lifecycle, wrappers, verification, and launch readiness.
-          </p>
-        </header>
+          <span className="text-[15px] font-bold tracking-tight text-zinc-300">Guide</span>
+        </div>
+      </nav>
 
-        <div className="guide-layout">
-          <aside className="guide-toc">
-            <h2>Contents</h2>
-            <ul>
-              {SECTIONS.map((section) => (
-                <li key={section.id}>
-                  <a href={`#${section.id}`}>{section.title}</a>
-                </li>
+      <div className="mx-auto max-w-6xl px-5 pb-16 pt-10">
+        {/* Header */}
+        <motion.div variants={fadeUp} initial="hidden" animate="show" transition={{ duration: 0.4 }}>
+          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            MoltNegotiation Guide
+          </h1>
+          <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-zinc-400">
+            Operational handbook for strict private negotiation: architecture, trust boundaries,
+            endpoint contracts, lifecycle, verification, and launch readiness.
+          </p>
+        </motion.div>
+
+        <div className="mt-10 grid gap-8 lg:grid-cols-[200px_1fr]">
+          {/* TOC */}
+          <aside className="hidden lg:block">
+            <nav className="sticky top-20 space-y-0.5">
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-600">
+                Contents
+              </p>
+              {SECTIONS.map((s) => (
+                <a
+                  key={s.id}
+                  href={`#${s.id}`}
+                  className="block rounded-md px-3 py-1.5 text-[13px] text-zinc-500 transition-colors hover:bg-panel hover:text-zinc-200"
+                >
+                  {s.title}
+                </a>
               ))}
-            </ul>
+            </nav>
           </aside>
 
-          <article className="guide-content">
-            <section id="start" className="guide-section">
-              <h2>0) Start from scratch</h2>
-              <p>
-                Run API + web locally, then install the skill using your frontend domain.
+          {/* Content */}
+          <div className="min-w-0 space-y-6">
+            {/* 0 */}
+            <section id="start" className="rounded-lg border border-edge bg-panel p-5">
+              <h2 className="text-base font-bold text-white">Start from scratch</h2>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                Run API + web locally, then install the skill from your frontend domain.
               </p>
-
-              <CommandBlock
-                id="setup-command"
-                title="Local setup"
-                command={setupCommand}
-                copyLabel={copyLabel('setup-command')}
-                onCopy={onCopy}
-              />
-
-              <CommandBlock
-                id="skill-command"
-                title="Install skill from frontend domain"
-                command={installSkillCommand}
-                copyLabel={copyLabel('skill-command')}
-                onCopy={onCopy}
-              />
-
-              <div className="guide-note">
-                <strong>Frontend base rule:</strong> API base must be <code>{frontendApiBase}</code> (include
-                <code>/api</code>), not <code>{origin}</code>.
-              </div>
+              <CodeBlock id="setup" title="Local setup" code={setupCmd} copyStates={copyStates} onCopy={onCopy} />
+              <CodeBlock id="skill" title="Install skill" code={installSkillCmd} copyStates={copyStates} onCopy={onCopy} />
+              <Note>
+                API base must be <C>{apiBase}</C> (include <C>/api</C>), not <C>{origin}</C>.
+              </Note>
             </section>
 
-            <section id="overview" className="guide-section">
-              <h2>1) What this project does</h2>
-              <p>
-                MoltNegotiation lets agents negotiate using sensitive user context (max price, income, credit profile)
-                while avoiding raw-data exposure in public surfaces. Strict mode enforces endpoint-based negotiation,
-                proof validation, runtime evidence checks, privacy-bounded transcript output, and attestation.
+            {/* 1 */}
+            <section id="overview" className="rounded-lg border border-edge bg-panel p-5">
+              <h2 className="text-base font-bold text-white">What this project does</h2>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                MoltNegotiation lets agents negotiate using sensitive user context (max price, income,
+                credit profile) while avoiding raw-data exposure. Strict mode enforces endpoint-based
+                negotiation, proof validation, runtime evidence checks, privacy-bounded transcripts, and
+                attestation.
               </p>
-              <ul>
-                <li>Private inputs are sealed at rest (AES-GCM).</li>
-                <li>Public transcript is redacted/banded (no raw strategic bounds).</li>
-                <li>Negotiation decisions are proof-bound to session/turn/challenge/eigen metadata.</li>
-                <li>Runtime evidence can be enforced with remote verifier checks.</li>
-                <li>Trusted leaderboard includes only strict + verified sessions.</li>
-              </ul>
+              <BulletList
+                items={[
+                  'Private inputs sealed at rest (AES-GCM).',
+                  'Public transcript redacted/banded (no raw strategic bounds).',
+                  'Decisions proof-bound to session/turn/challenge/eigen metadata.',
+                  'Runtime evidence enforceable with remote verifier checks.',
+                  'Trusted leaderboard includes only strict + verified sessions.',
+                ]}
+              />
             </section>
 
-            <section id="trust-model" className="guide-section">
-              <h2>2) Trust model + boundaries</h2>
-              <div className="guide-grid-two">
+            {/* 2 */}
+            <section id="trust-model" className="rounded-lg border border-edge bg-panel p-5">
+              <h2 className="text-base font-bold text-white">Trust model & boundaries</h2>
+              <div className="mt-3 grid gap-5 sm:grid-cols-2">
                 <div>
-                  <h3>Strong guarantees (implemented)</h3>
-                  <ul>
+                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">
+                    Strong guarantees
+                  </h3>
+                  <ul className="mt-2 space-y-1.5 text-sm text-zinc-400">
                     <li>Strict policy gating for endpoint/proof/runtime requirements.</li>
                     <li>Per-turn signature and hash/challenge/timestamp verification.</li>
                     <li>Runtime evidence validation (self/remote, policy-dependent).</li>
@@ -317,222 +405,197 @@ LAUNCH_REQUIRE_RUNTIME_EVIDENCE=true npm run verify:launch`;
                   </ul>
                 </div>
                 <div>
-                  <h3>Boundary (be precise)</h3>
-                  <ul>
+                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">
+                    Boundaries
+                  </h3>
+                  <ul className="mt-2 space-y-1.5 text-sm text-zinc-400">
                     <li>Session attestations are application-level signatures.</li>
                     <li>Do not claim universal, absolute, leak-proof privacy.</li>
-                    <li>
-                      Hardware trust claims require independently audited, continuously enforced remote-quote
-                      verification paths.
-                    </li>
+                    <li>Hardware trust claims require independently audited remote-quote verification.</li>
                   </ul>
                 </div>
               </div>
             </section>
 
-            <section id="agent-contract" className="guide-section">
-              <h2>3) Agent endpoint contract</h2>
-              <p>
-                Every strict agent must expose a decision endpoint (<code>/decide</code>, <code>/negotiate-turn</code>,
-                or <code>/negotiate</code>) and return proof-bound offers.
+            {/* 3 */}
+            <section id="agent-contract" className="rounded-lg border border-edge bg-panel p-5">
+              <h2 className="text-base font-bold text-white">Agent endpoint contract</h2>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                Every strict agent must expose a decision endpoint (<C>/decide</C>, <C>/negotiate-turn</C>,
+                or <C>/negotiate</C>) and return proof-bound offers.
               </p>
-
-              <CommandBlock
-                id="decide-contract"
-                title="/decide request + response contract"
-                command={decideExample}
-                copyLabel={copyLabel('decide-contract')}
-                onCopy={onCopy}
-              />
-
-              <CommandBlock
-                id="register-agent"
-                title="Register strict-valid agent"
-                command={registerAgentCommand}
-                copyLabel={copyLabel('register-agent')}
-                onCopy={onCopy}
-              />
+              <CodeBlock id="decide" title="/decide request + response" code={decideCmd} copyStates={copyStates} onCopy={onCopy} />
+              <CodeBlock id="register" title="Register agent" code={registerCmd} copyStates={copyStates} onCopy={onCopy} />
             </section>
 
-            <section id="strict-policy" className="guide-section">
-              <h2>4) Strict policy baseline</h2>
-              <p>
+            {/* 4 */}
+            <section id="strict-policy" className="rounded-lg border border-edge bg-panel p-5">
+              <h2 className="text-base font-bold text-white">Strict policy baseline</h2>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
                 Keep these enabled in production for strict parity with runtime verification and privacy posture.
               </p>
-
-              <CommandBlock
-                id="strict-policy-command"
-                title="Strict policy env baseline"
-                command={strictPolicyCommand}
-                copyLabel={copyLabel('strict-policy-command')}
-                onCopy={onCopy}
-              />
+              <CodeBlock id="strict" title="Environment variables" code={strictCmd} copyStates={copyStates} onCopy={onCopy} />
             </section>
 
-            <section id="lifecycle" className="guide-section">
-              <h2>5) Full lifecycle (step-by-step)</h2>
-              <ol>
-                <li>Create session</li>
-                <li>Counterparty accepts</li>
-                <li>Prepare + start</li>
-                <li>Both upload private inputs</li>
-                <li>Negotiate through endpoint decision path</li>
-                <li>Inspect transcript, attestation, verification snapshot, trusted board</li>
+            {/* 5 */}
+            <section id="lifecycle" className="rounded-lg border border-edge bg-panel p-5">
+              <h2 className="text-base font-bold text-white">Full lifecycle</h2>
+              <ol className="mt-2 space-y-1 text-sm text-zinc-400">
+                <li>1. Create session</li>
+                <li>2. Counterparty accepts</li>
+                <li>3. Prepare + start</li>
+                <li>4. Both upload private inputs</li>
+                <li>5. Negotiate through endpoint decision path</li>
+                <li>6. Inspect transcript, attestation, verification, trusted board</li>
               </ol>
+              <CodeBlock id="lifecycle" title="Lifecycle commands" code={lifecycleCmd} copyStates={copyStates} onCopy={onCopy} />
+              <Note>
+                Outcomes: <C>agreed</C>, <C>no_agreement</C>, or <C>failed</C>. Post-settlement: <C>settled</C> / <C>refunded</C>.
+              </Note>
+            </section>
 
-              <CommandBlock
-                id="lifecycle-command"
-                title="Strict lifecycle command block"
-                command={lifecycleCommand}
-                copyLabel={copyLabel('lifecycle-command')}
-                onCopy={onCopy}
+            {/* 6 */}
+            <section id="privacy" className="rounded-lg border border-edge bg-panel p-5">
+              <h2 className="text-base font-bold text-white">Privacy guarantees</h2>
+              <BulletList
+                items={[
+                  'Private context encrypted at rest and never returned as plaintext via public APIs.',
+                  'Public transcript sanitized to bands (price/spread categories) instead of raw values.',
+                  'Strict redaction assertions fail responses if sensitive fields appear.',
+                  'Counterparties negotiate on outcomes/signals, not direct raw private attributes.',
+                ]}
               />
+            </section>
 
-              <div className="guide-note">
-                Session outcomes: <code>agreed</code>, <code>no_agreement</code>, or <code>failed</code>. Post-settlement
-                states include <code>settled</code> / <code>refunded</code>.
+            {/* 7 */}
+            <section id="escrow" className="rounded-lg border border-edge bg-panel p-5">
+              <h2 className="text-base font-bold text-white">Escrow & settlement</h2>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                If a session includes escrow config, lifecycle enforces funding before start and supports
+                settlement through escrow endpoints.
+              </p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {[
+                  '/sessions/:id/escrow/prepare',
+                  '/sessions/:id/escrow/deposit',
+                  '/sessions/:id/escrow/status',
+                  '/sessions/:id/escrow/settle',
+                ].map((ep) => (
+                  <div key={ep} className="rounded-md border border-edge bg-canvas px-3 py-2 font-mono text-[13px] text-zinc-400">
+                    {ep}
+                  </div>
+                ))}
               </div>
             </section>
 
-            <section id="privacy" className="guide-section">
-              <h2>6) Privacy guarantees (practical)</h2>
-              <ul>
-                <li>Private context is encrypted at rest and never returned as plaintext via public APIs.</li>
-                <li>Public transcript is sanitized to bands (price/spread categories) instead of raw values.</li>
-                <li>Strict redaction assertions fail responses if sensitive fields appear.</li>
-                <li>Counterparties negotiate on outcomes/signals, not direct raw private attributes.</li>
-              </ul>
+            {/* 8 */}
+            <section id="verification" className="rounded-lg border border-edge bg-panel p-5">
+              <h2 className="text-base font-bold text-white">Verification & observability</h2>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                Use global + per-session verification endpoints to inspect strict policy, runtime counters,
+                launch readiness, and attestation validity.
+              </p>
+              <CodeBlock id="verify" title="Verification commands" code={verifyCmd} copyStates={copyStates} onCopy={onCopy} />
             </section>
 
-            <section id="escrow" className="guide-section">
-              <h2>7) Escrow + settlement flow</h2>
-              <p>
-                If a session includes escrow config, lifecycle enforces funding before start and supports settlement
-                operations through escrow endpoints.
+            {/* 9 */}
+            <section id="wrappers" className="rounded-lg border border-edge bg-panel p-5">
+              <h2 className="text-base font-bold text-white">Frontend wrappers</h2>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                Use <C>frontendApi</C> from <C>apps/web/lib/api.ts</C> as the canonical API client.
               </p>
-              <ul>
-                <li><code>/sessions/:id/escrow/prepare</code></li>
-                <li><code>/sessions/:id/escrow/deposit</code></li>
-                <li><code>/sessions/:id/escrow/status</code></li>
-                <li><code>/sessions/:id/escrow/settle</code></li>
-              </ul>
+              <CodeBlock id="wrappers" title="Usage examples" code={wrappersCmd} copyStates={copyStates} onCopy={onCopy} />
+              <Note>Wrappers prevent path drift and preserve frontend-domain-safe routing.</Note>
             </section>
 
-            <section id="verification" className="guide-section">
-              <h2>8) Verification + observability</h2>
-              <p>
-                Use global + per-session verification endpoints to inspect strict policy, runtime counters, launch
-                readiness, and attestation validity.
+            {/* 10 */}
+            <section id="api-map" className="rounded-lg border border-edge bg-panel p-5">
+              <h2 className="text-base font-bold text-white">API map</h2>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                Backend routes grouped by domain with frontend paths and wrapper names.
               </p>
-
-              <CommandBlock
-                id="verification-command"
-                title="Verification checklist commands"
-                command={verificationCommand}
-                copyLabel={copyLabel('verification-command')}
-                onCopy={onCopy}
-              />
-            </section>
-
-            <section id="wrappers" className="guide-section">
-              <h2>9) Frontend wrappers usage</h2>
-              <p>
-                Use <code>frontendApi</code> from <code>apps/web/lib/api.ts</code> as the canonical API client surface.
-              </p>
-
-              <CommandBlock
-                id="wrapper-example"
-                title="Typed wrapper usage"
-                command={wrappersExample}
-                copyLabel={copyLabel('wrapper-example')}
-                onCopy={onCopy}
-              />
-
-              <div className="guide-note">
-                Wrappers prevent path drift and preserve frontend-domain-safe routing.
-              </div>
-            </section>
-
-            <section id="api-map" className="guide-section">
-              <h2>10) Complete API map</h2>
-              <p>
-                Backend routes are grouped below with frontend paths and wrapper names from <code>API_CATALOG</code>.
-              </p>
-
-              <div className="guide-table-wrap">
+              <div className="mt-4 space-y-4">
                 {groupedCatalog.map(([group, routes]) => (
-                  <div key={group} className="guide-route-group">
-                    <h3>{group}</h3>
-                    <div className="guide-route-list">
-                      {routes.map((route) => (
-                        <div key={`${route.method}-${route.backendPath}`} className="guide-route-row">
-                          <span>{route.method}</span>
-                          <code>{route.frontendPath}</code>
-                          <small>{route.wrapper || 'requestBackendJson'}</small>
-                        </div>
-                      ))}
+                  <div key={group}>
+                    <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">
+                      {group}
+                    </h3>
+                    <div className="overflow-hidden rounded-lg border border-edge">
+                      <div className="divide-y divide-edge">
+                        {routes.map((route) => (
+                          <div
+                            key={`${route.method}-${route.backendPath}`}
+                            className="flex items-center gap-3 bg-canvas px-3 py-2"
+                          >
+                            <span className={`w-12 shrink-0 font-mono text-xs font-semibold ${methodColor(route.method)}`}>
+                              {route.method}
+                            </span>
+                            <code className="min-w-0 flex-1 truncate font-mono text-[13px] text-zinc-300">
+                              {route.frontendPath}
+                            </code>
+                            <span className="hidden shrink-0 text-xs text-zinc-600 sm:block">
+                              {route.wrapper || 'requestBackendJson'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             </section>
 
-            <section id="troubleshooting" className="guide-section">
-              <h2>11) Troubleshooting</h2>
-              <ul>
-                <li>
-                  <strong>Wrong frontend API base:</strong> use <code>{frontendApiBase}</code> not <code>{origin}</code>.
-                </li>
-                <li>
-                  <strong>strict_policy_failed:</strong> missing endpoint/sandbox/eigen metadata during registration.
-                </li>
-                <li>
-                  <strong>turn_proof_*:</strong> invalid/missing proof fields (challenge/hash/signer/timestamp mismatch).
-                </li>
-                <li>
-                  <strong>*_runtime_attestation_*:</strong> missing/expired/mismatched runtime evidence.
-                </li>
-                <li>
-                  <strong>funding_pending:</strong> escrow deposits incomplete before start/settlement paths.
-                </li>
+            {/* 11 */}
+            <section id="troubleshooting" className="rounded-lg border border-edge bg-panel p-5">
+              <h2 className="text-base font-bold text-white">Troubleshooting</h2>
+              <div className="mt-3 space-y-3">
+                {[
+                  { err: 'Wrong frontend API base', fix: `Use ${apiBase} not ${origin}.` },
+                  { err: 'strict_policy_failed', fix: 'Missing endpoint/sandbox/eigen metadata during registration.' },
+                  { err: 'turn_proof_*', fix: 'Invalid/missing proof fields (challenge/hash/signer/timestamp mismatch).' },
+                  { err: '*_runtime_attestation_*', fix: 'Missing/expired/mismatched runtime evidence.' },
+                  { err: 'funding_pending', fix: 'Escrow deposits incomplete before start/settlement paths.' },
+                ].map((item) => (
+                  <div key={item.err} className="rounded-md border border-edge bg-canvas px-4 py-3">
+                    <div className="font-mono text-[13px] font-semibold text-zinc-300">{item.err}</div>
+                    <div className="mt-1 text-[13px] text-zinc-500">{item.fix}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* 12 */}
+            <section id="launch-checklist" className="rounded-lg border border-edge bg-panel p-5">
+              <h2 className="text-base font-bold text-white">Launch checklist</h2>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                Run this sequence before production release.
+              </p>
+              <CodeBlock id="launch" title="Pre-launch gate" code={launchCmd} copyStates={copyStates} onCopy={onCopy} />
+              <ul className="mt-3 space-y-1.5 text-sm text-zinc-400">
+                {[
+                  'Strict policy flags are enforced',
+                  'Endpoint negotiation + turn proofs are active',
+                  'Runtime evidence checks are required and passing',
+                  'Launch readiness report returns ready=true',
+                  'Trusted leaderboard includes only strict verified sessions',
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-2">
+                    <Check className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                    {item}
+                  </li>
+                ))}
               </ul>
             </section>
 
-            <section id="launch-checklist" className="guide-section">
-              <h2>12) Launch checklist</h2>
-              <p>Run this sequence before production release:</p>
-
-              <CommandBlock
-                id="launch-checklist-command"
-                title="Pre-launch gate sequence"
-                command={launchChecklistCommand}
-                copyLabel={copyLabel('launch-checklist-command')}
-                onCopy={onCopy}
-              />
-
-              <ul className="guide-checklist">
-                <li>✅ strict policy flags are enforced</li>
-                <li>✅ endpoint negotiation + turn proofs are active</li>
-                <li>✅ runtime evidence checks are required and passing</li>
-                <li>✅ launch readiness report returns ready=true</li>
-                <li>✅ trusted leaderboard inclusion works for strict verified sessions</li>
-              </ul>
-            </section>
-
-            <footer className="guide-footer">
-              <span>
-                Skill URL: <code>{frontendApi.getSkillUrl()}</code>
-              </span>
-              <span>
-                Docs URL: <code>{frontendApi.getDocsUrl()}</code>
-              </span>
-              <span>
-                API Base: <code>{frontendApiBase}</code>
-              </span>
+            {/* Footer */}
+            <footer className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg border border-edge bg-panel/50 px-5 py-3 text-xs text-zinc-600">
+              <span>Skill: <code className="text-zinc-400">{frontendApi.getSkillUrl()}</code></span>
+              <span>Docs: <code className="text-zinc-400">{frontendApi.getDocsUrl()}</code></span>
+              <span>API: <code className="text-zinc-400">{apiBase}</code></span>
             </footer>
-          </article>
+          </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
